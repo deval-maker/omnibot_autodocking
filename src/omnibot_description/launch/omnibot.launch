@@ -1,9 +1,16 @@
 <launch>
 
+  <arg name="paused" default="false"/>
+  
   <include file="$(find gazebo_ros)/launch/empty_world.launch"> </include>
   
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find omnibot_description)/urdf/omnibot.urdf'" />
+
   <node name="spawn_table" pkg="gazebo_ros" type="spawn_model" args="-file $(find static_model_db)/dock_table/model.sdf -sdf -x 0 -y -0 -z 0 -model table" respawn="false" output="screen" />
 
-  <node name="spawn_omnibot" pkg="gazebo_ros" type="spawn_model" args="-file $(find omnibot_description)/urdf/omnibot.urdf -urdf -x -4 -y 0 -z 0 -model omnibot" respawn="false" output="screen" />
+  <node name="spawn_omnibot" pkg="gazebo_ros" type="spawn_model" args="-file $(find omnibot_description)/urdf/omnibot.urdf -urdf -x -4 -y 0 -z 0.2 -model omnibot" respawn="false" output="screen" />
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" />
 
 </launch>
