@@ -1,8 +1,8 @@
 <launch>
 
-  <arg name="paused" default="false"/>
-  
-  <include file="$(find gazebo_ros)/launch/empty_world.launch"> </include>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch"> 
+  	<arg name="paused" default="true"/>
+  </include>
   
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find omnibot_description)/urdf/omnibot.urdf'" />
 
@@ -12,5 +12,10 @@
 
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
   <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" />
+  
+  <node pkg="tf" type="static_transform_publisher" name="odom_to_map" 
+        args="0 0 0 0 0 0 1.0 map odom 100" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find omnibot_description)/launch/omnibot_config.rviz"/>
 
 </launch>
