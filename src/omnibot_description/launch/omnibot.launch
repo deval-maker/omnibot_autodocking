@@ -4,6 +4,6 @@
   
   <node name="spawn_table" pkg="gazebo_ros" type="spawn_model" args="-file $(find static_model_db)/dock_table/model.sdf -sdf -x 0 -y -0 -z 0 -model table" respawn="false" output="screen" />
 
-  <node name="spawn_omnibot" pkg="gazebo_ros" type="spawn_model" args="-file $(find omnibot_description)/urdf/omnibot.urdf -urdf -x 0 -y -4 -z 0 -model omnibot" respawn="false" output="screen" />
+  <node name="spawn_omnibot" pkg="gazebo_ros" type="spawn_model" args="-file $(find omnibot_description)/urdf/omnibot.urdf -urdf -x -4 -y 0 -z 0 -model omnibot" respawn="false" output="screen" />
 
 </launch>

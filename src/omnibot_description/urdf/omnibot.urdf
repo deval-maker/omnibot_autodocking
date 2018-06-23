@@ -9,14 +9,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="2 3 0.4" />
+        <box size="3 2 0.4" />
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="2 3 0.4" />
+        <box size="3 2 0.4" />
       </geometry>
     </collision>
   
@@ -26,5 +26,15 @@
       <inertia ixx="0.166667" ixy="0.0" ixz="0.0" iyy="0.166667" iyz="0.0" izz="0.166667"/>
     </inertial>
   </link>
+
+  <gazebo>
+    <plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <odometryRate>20.0</odometryRate>
+      <robotBaseFrame>base_link</robotBaseFrame>
+    </plugin>
+  </gazebo>
 
 </robot>
