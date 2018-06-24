@@ -20,6 +20,7 @@ public:
 
 	ros::NodeHandle *node;
 	ros::ServiceClient gazebo_model_state_client;
+	ros::Publisher send_velo_pub;
 
 	std::string goal_model;
 	geometry_msgs::Pose goal_position;
@@ -33,6 +34,8 @@ public:
 	geometry_msgs::Twist velocity_lower_thresholds;
 
 	geometry_msgs::Twist vel_to_tracker;
+
+	geometry_msgs::Twist zero_velo;
 
 	bool is_tracked;
 

@@ -10,8 +10,8 @@ int main (int argc, char** argv) {
 
 //	Pseudo Code:
 //
-//	While ros shutdown
-//
+	while (ros::ok())
+	{
 //		get_goal();
 //		get bot position
 //
@@ -23,6 +23,7 @@ int main (int argc, char** argv) {
 //		go_to_goal (x, y, theta) (send velocities towards goal)
 //			upper thresholds and lower thresholds to the output velos
 
+	}
 
 	return 0;
 }

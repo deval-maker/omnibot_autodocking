@@ -9,6 +9,7 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 
 	this->node = nodeH;
 	this->gazebo_model_state_client = this->node->serviceClient<gazebo_msgs::GetModelState>("/gazebo/get_model_state");;
+	this->send_velo_pub = this->node->advertise<geometry_msgs::Twist>("/cmd_vel", 1000);
 
 	this->goal_model = goal_model;
 
@@ -24,7 +25,10 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 	//	set velocity_lower_thresholds;
 	//
 	//	set vel_to_tracker;
-	//  set zero velo to tracker
+
+	ros::Duration(1).sleep();
+
+	this->send_tracker_velocities(this->zero_velo);
 
 }
 
@@ -142,6 +146,9 @@ track_model_errors_e track_model::send_tracker_velocities(geometry_msgs::Twist t
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
+	ROS_INFO("Send Tracker velocities x:%f, y:%f angZ:%f ", twist_to_tracker.linear.x, twist_to_tracker.linear.y, twist_to_tracker.angular.z);
+
+	send_velo_pub.publish(twist_to_tracker);
 
 	return status;
 }
