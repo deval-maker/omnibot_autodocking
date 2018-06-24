@@ -43,7 +43,7 @@ public:
 	track_model_errors_e get_model_position();
 	track_model_errors_e get_tracker_position();
 	track_model_errors_e check_tracking();
-	track_model_errors_e set_goal_position();
+	track_model_errors_e get_goal_position();
 	track_model_errors_e compute_tracking_velocities();
 	track_model_errors_e filter_tracking_velocities();
 	track_model_errors_e send_tracker_velocities(geometry_msgs::Twist);
