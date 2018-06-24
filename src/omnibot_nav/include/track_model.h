@@ -23,7 +23,7 @@ public:
 	ros::Publisher send_velo_pub;
 
 	std::string goal_model;
-	geometry_msgs::Pose goal_position;
+	geometry_msgs::Pose model_position;
 
 	std::string tracker_model;
 	geometry_msgs::Pose tracker_position;
@@ -31,21 +31,21 @@ public:
 	geometry_msgs::Pose tracking_thresholds;
 
 	geometry_msgs::Twist velocity_upper_thresholds;
-	geometry_msgs::Twist velocity_lower_thresholds;
 
 	geometry_msgs::Twist vel_to_tracker;
-
 	geometry_msgs::Twist zero_velo;
+
+	geometry_msgs::Pose goal;
 
 	bool is_tracked;
 
 	track_model_errors_e get_position(std::string model_name, geometry_msgs::Pose *model_pose);
-	track_model_errors_e get_goal_position();
+	track_model_errors_e get_model_position();
 	track_model_errors_e get_tracker_position();
 	track_model_errors_e check_tracking();
 	track_model_errors_e set_goal_position();
 	track_model_errors_e compute_tracking_velocities();
-	track_model_errors_e filter_velocities();
+	track_model_errors_e filter_tracking_velocities();
 	track_model_errors_e send_tracker_velocities(geometry_msgs::Twist);
 };
 
