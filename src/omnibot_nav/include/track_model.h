@@ -5,6 +5,7 @@
 #include <gazebo_msgs/GetModelState.h>
 #include <string.h>
 #include <geometry_msgs/Pose.h>
+#include <tf/tf.h>
 
 enum track_model_errors_e
 {
@@ -31,6 +32,7 @@ public:
 	geometry_msgs::Pose tracking_thresholds;
 
 	geometry_msgs::Twist velocity_upper_thresholds;
+	geometry_msgs::Twist velocity_lower_thresholds;
 
 	geometry_msgs::Twist vel_to_tracker;
 	geometry_msgs::Twist zero_velo;

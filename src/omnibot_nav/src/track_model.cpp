@@ -1,11 +1,5 @@
 #include "track_model.h"
 
-#include <ros/ros.h>
-#include <gazebo_msgs/GetModelState.h>
-#include <string.h>
-#include <geometry_msgs/Pose.h>
-#include <tf/tf.h>
-
 track_model::track_model(std::string goal_model, std::string tracker_model, ros::NodeHandle* nodeH)
 {
 
@@ -25,9 +19,13 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 	this->tracking_thresholds.position.y = 0.01;
 	this->tracking_thresholds.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, 2*M_PI/180);
 
-	this->velocity_upper_thresholds.linear.x = 1;
-	this->velocity_upper_thresholds.linear.y = 1;
-	this->velocity_upper_thresholds.angular.z = 1;
+	this->velocity_upper_thresholds.linear.x = 1.5;
+	this->velocity_upper_thresholds.linear.y = 1.5;
+	this->velocity_upper_thresholds.angular.z = 1.5;
+
+	this->velocity_lower_thresholds.linear.x = 0.1;
+	this->velocity_lower_thresholds.linear.y = 0.1;
+	this->velocity_lower_thresholds.angular.z = 0.1;
 
 	ros::Duration(1).sleep();
 
@@ -200,20 +198,31 @@ track_model_errors_e track_model::filter_tracking_velocities(){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	if(this->vel_to_tracker.linear.x > this->velocity_upper_thresholds.linear.x)
+	if(fabs(this->vel_to_tracker.linear.x) > this->velocity_upper_thresholds.linear.x)
 	{
-		this->vel_to_tracker.linear.x = this->velocity_upper_thresholds.linear.x;
+		if(this->vel_to_tracker.linear.x < 0)
+		{
+			this->vel_to_tracker.linear.x = -1 * this->velocity_upper_thresholds.linear.x;
+		}
+		else
+		{
+			this->vel_to_tracker.linear.x = this->velocity_upper_thresholds.linear.x;
+		}
 	}
 
-	if(this->vel_to_tracker.linear.y > this->velocity_upper_thresholds.linear.y)
+	if(fabs(this->vel_to_tracker.linear.x) < this->velocity_lower_thresholds.linear.x &&
+			this->vel_to_tracker.linear.x != 0.0)
 	{
-		this->vel_to_tracker.linear.y = this->velocity_upper_thresholds.linear.y;
+		if(this->vel_to_tracker.linear.x < 0)
+		{
+			this->vel_to_tracker.linear.x = -1 * this->velocity_lower_thresholds.linear.x;
+		}
+		else
+		{
+			this->vel_to_tracker.linear.x = this->velocity_lower_thresholds.linear.x;
+		}
 	}
 
-	if(this->vel_to_tracker.angular.z > this->velocity_upper_thresholds.angular.z)
-	{
-		this->vel_to_tracker.angular.z = this->velocity_upper_thresholds.angular.z;
-	}
 
 	return status;
 }

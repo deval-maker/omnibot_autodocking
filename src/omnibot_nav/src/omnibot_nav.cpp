@@ -8,7 +8,7 @@ int main (int argc, char** argv)
 
 	track_model nav("table", "omnibot", &n);
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(50);
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
