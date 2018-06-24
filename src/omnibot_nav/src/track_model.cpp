@@ -4,6 +4,7 @@
 #include <gazebo_msgs/GetModelState.h>
 #include <string.h>
 #include <geometry_msgs/Pose.h>
+#include <tf/tf.h>
 
 track_model::track_model(std::string goal_model, std::string tracker_model, ros::NodeHandle* nodeH)
 {
@@ -20,8 +21,13 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 
 	this->check_tracking();
 
-	//	set tracking_thresholds;
-	//	set velocity_upper_thresholds;
+	this->tracking_thresholds.position.x = 0.01;
+	this->tracking_thresholds.position.y = 0.01;
+	this->tracking_thresholds.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, 2*M_PI/180);
+
+	this->velocity_upper_thresholds.linear.x = 1;
+	this->velocity_upper_thresholds.linear.y = 1;
+	this->velocity_upper_thresholds.angular.z = 1;
 
 	ros::Duration(1).sleep();
 
@@ -46,8 +52,8 @@ track_model_errors_e track_model::get_model_position()
 
 	if(TRACK_MODEL_SUCCESS == status)
 	{
-		ROS_INFO("Model Pos %f, %f", this->tracker_position.position.x,
-				this->tracker_position.position.y);
+		ROS_INFO("Model Pos %f, %f", this->model_position.position.x,
+				this->model_position.position.y);
 	}
 	else
 	{
@@ -116,8 +122,30 @@ track_model_errors_e track_model::check_tracking()
 		status = this->get_tracker_position();
 	}
 
-	// is_tracked = true if goal-tracker < threshold
-	this->is_tracked = false;
+	if(TRACK_MODEL_SUCCESS == status)
+	{
+		tf::Pose pose;
+		tf::poseMsgToTF(this->tracker_position, pose);
+		double yaw_tracker = tf::getYaw(pose.getRotation());
+
+		tf::poseMsgToTF(this->model_position, pose);
+		double yaw_model = tf::getYaw(pose.getRotation());
+
+		tf::poseMsgToTF(this->tracking_thresholds, pose);
+		double yaw_threshold = tf::getYaw(pose.getRotation());
+
+		if((fabs(yaw_model - yaw_tracker) > yaw_threshold) ||
+				(fabs(this->model_position.position.x - this->tracker_position.position.x) > this->tracking_thresholds.position.x) ||
+				(fabs(this->model_position.position.y - this->tracker_position.position.y) > this->tracking_thresholds.position.y) )
+		{
+			this->is_tracked = false;
+		}
+
+		else
+		{
+			this->is_tracked = true;
+		}
+	}
 
 	return status;
 }
@@ -129,8 +157,7 @@ track_model_errors_e track_model::set_goal_position(){
 	// get intermediate goal (eliminate one (shortest dist))
 	// (if already at the intermediate pos, give the actual goal)
 
-	this->goal.position.x = 0.0;
-	this->goal.position.y = 0.0;
+	this->goal = this->model_position;
 
 	ROS_INFO("Goal set to Pos x:%f, y:%f", this->goal.position.x,
 			this->goal.position.y);
@@ -146,7 +173,9 @@ track_model_errors_e track_model::compute_tracking_velocities(){
 
 	if(!is_tracked)
 	{
-		this->vel_to_tracker.linear.x = 0.5;
+
+		// The Controller
+
 	}
 	else
 	{
@@ -162,7 +191,20 @@ track_model_errors_e track_model::filter_tracking_velocities(){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	// upper thresholds and lower thresholds to the output velos
+	if(this->vel_to_tracker.linear.x > this->velocity_upper_thresholds.linear.x)
+	{
+		this->vel_to_tracker.linear.x = this->velocity_upper_thresholds.linear.x;
+	}
+
+	if(this->vel_to_tracker.linear.y > this->velocity_upper_thresholds.linear.y)
+	{
+		this->vel_to_tracker.linear.y = this->velocity_upper_thresholds.linear.y;
+	}
+
+	if(this->vel_to_tracker.angular.z > this->velocity_upper_thresholds.angular.z)
+	{
+		this->vel_to_tracker.angular.z = this->velocity_upper_thresholds.angular.z;
+	}
 
 	return status;
 }
