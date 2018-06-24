@@ -29,13 +29,15 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 
 	ros::Duration(1).sleep();
 
-	this->send_tracker_velocities(this->zero_velo);
+	this->vel_to_tracker = this->zero_velo;
+	this->send_tracker_velocities();
 
 }
 
 track_model::~track_model()
 {
-	this->send_tracker_velocities(this->zero_velo);
+	this->vel_to_tracker = this->zero_velo;
+	this->send_tracker_velocities();
 }
 
 track_model_errors_e track_model::get_model_position()
@@ -152,9 +154,6 @@ track_model_errors_e track_model::get_goal_position(){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	// get intermediate goal (eliminate one (shortest dist))
-	// (if already at the intermediate pos, give the actual goal)
-
 	if(!is_tracked)
 	{
 		this->goal = this->model_position;
@@ -178,7 +177,6 @@ track_model_errors_e track_model::compute_tracking_velocities(){
 		error.position.x = this->goal.position.x - this->tracker_position.position.x;
 		error.position.y = this->goal.position.y - this->tracker_position.position.y;
 
-		// The Controller
 		this->vel_to_tracker.linear.x = error.position.x * 0.8;
 
 		ROS_INFO("[Controller] [Error.x:%f] ", error.position.x);
@@ -223,17 +221,17 @@ track_model_errors_e track_model::filter_tracking_velocities(){
 		}
 	}
 
-
 	return status;
 }
 
-track_model_errors_e track_model::send_tracker_velocities(geometry_msgs::Twist twist_to_tracker){
+track_model_errors_e track_model::send_tracker_velocities(){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	ROS_INFO("[Tracker] [Twist] [lin_x:%f] [lin_y:%f] [lin_z:%f]", twist_to_tracker.linear.x, twist_to_tracker.linear.y, twist_to_tracker.angular.z);
+	ROS_INFO("[Tracker] [Twist] [lin_x:%f] [lin_y:%f] [lin_z:%f]", this->vel_to_tracker.linear.x, this->vel_to_tracker.linear.y,
+			this->vel_to_tracker.angular.z);
 
-	this->send_velo_pub.publish(twist_to_tracker);
+	this->send_velo_pub.publish(this->vel_to_tracker);
 
 	return status;
 }

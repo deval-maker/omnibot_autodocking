@@ -27,7 +27,7 @@ int main (int argc, char** argv)
 
 		if(TRACK_MODEL_SUCCESS == status)
 		{
-			status = nav.send_tracker_velocities(nav.vel_to_tracker);
+			status = nav.send_tracker_velocities();
 		}
 
 		loop_rate.sleep();

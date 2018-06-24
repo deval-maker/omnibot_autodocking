@@ -48,7 +48,7 @@ public:
 	track_model_errors_e get_goal_position();
 	track_model_errors_e compute_tracking_velocities();
 	track_model_errors_e filter_tracking_velocities();
-	track_model_errors_e send_tracker_velocities(geometry_msgs::Twist);
+	track_model_errors_e send_tracker_velocities();
 };
 
 #endif /* OMNIBOT_NAV_SRC_TRACKMODEL_H_ */
