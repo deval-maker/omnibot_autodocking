@@ -16,17 +16,19 @@ int main (int argc, char** argv)
 
 	while (ros::ok())
 	{
-
+		// Sense
 		if(TRACK_MODEL_SUCCESS == status)
 		{
 			status = nav.check_tracking();
 		}
 
+		// Plan
 		if(TRACK_MODEL_SUCCESS == status)
 		{
 			status = nav.compute_tracking_velocities();
 		}
 
+		// Act
 		if(TRACK_MODEL_SUCCESS == status)
 		{
 			status = nav.send_tracker_velocities();

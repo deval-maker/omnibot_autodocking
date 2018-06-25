@@ -14,14 +14,13 @@ enum track_model_errors_e
 };
 
 class track_model {
-public:
 
-	track_model(std::string goal_model, std::string tracker_model, ros::NodeHandle* nodeH);
-	~track_model();
+private:
 
 	ros::NodeHandle *node;
 	ros::ServiceClient gazebo_model_state_client;
 	ros::Publisher send_velo_pub;
+
 
 	std::string goal_model;
 	geometry_msgs::Pose model_position;
@@ -29,13 +28,19 @@ public:
 	std::string tracker_model;
 	geometry_msgs::Pose tracker_position;
 
+	geometry_msgs::Twist vel_to_tracker;
+	geometry_msgs::Twist zero_velo;
+
+
+public:
+
+	track_model(std::string goal_model, std::string tracker_model, ros::NodeHandle* nodeH);
+	~track_model();
+
 	geometry_msgs::Pose tracking_thresholds;
 
 	geometry_msgs::Twist velocity_upper_thresholds;
 	geometry_msgs::Twist velocity_lower_thresholds;
-
-	geometry_msgs::Twist vel_to_tracker;
-	geometry_msgs::Twist zero_velo;
 
 	geometry_msgs::Pose goal;
 
