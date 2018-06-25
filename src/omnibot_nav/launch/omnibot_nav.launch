@@ -1,0 +1,6 @@
+<launch>
+
+	<include file="$(find omnibot_description)/launch/omnibot.launch"/>
+	<node pkg="omnibot_nav" type="omnibot_nav_node" name="navigation" output="screen"/>
+
+</launch>

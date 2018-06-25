@@ -6,6 +6,8 @@ int main (int argc, char** argv)
 	ros::init(argc,argv,"omnibot_nav");
 	ros::NodeHandle n;
 
+	ros::service::waitForService("/gazebo/get_model_state", -1);
+
 	track_model nav("table", "omnibot", &n);
 
 	ros::Rate loop_rate(50);
