@@ -6,6 +6,8 @@ int main (int argc, char** argv)
 	ros::init(argc,argv,"omnibot_nav");
 	ros::NodeHandle n;
 
+	ROS_INFO("Waiting for gazebo model state service.");
+
 	ros::service::waitForService("/gazebo/get_model_state", -1);
 
 	track_model nav("table", "omnibot", &n);
@@ -14,12 +16,19 @@ int main (int argc, char** argv)
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
+	ROS_INFO("Omnibot Nav node started.");
+
 	while (ros::ok())
 	{
 		// Sense
 		if(TRACK_MODEL_SUCCESS == status)
 		{
-			status = nav.check_tracking();
+			status = nav.get_all_positions();
+		}
+
+		if(TRACK_MODEL_SUCCESS == status)
+		{
+			status = nav.get_goal_position();
 		}
 
 		// Plan
