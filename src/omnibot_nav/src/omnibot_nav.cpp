@@ -12,6 +12,8 @@ int main (int argc, char** argv)
 
 	track_model nav("table", "omnibot", &n);
 
+	ros::Subscriber sub = n.subscribe("/goal", 2, &track_model::set_goal_position_cb, &nav);
+
 	ros::Rate loop_rate(50);
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
@@ -23,12 +25,7 @@ int main (int argc, char** argv)
 		// Sense
 		if(TRACK_MODEL_SUCCESS == status)
 		{
-			status = nav.get_all_positions();
-		}
-
-		if(TRACK_MODEL_SUCCESS == status)
-		{
-			status = nav.get_goal_position();
+			status = nav.get_tracker_position();
 		}
 
 		// Plan

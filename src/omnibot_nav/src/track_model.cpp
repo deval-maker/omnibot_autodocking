@@ -23,7 +23,10 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 	this->goal_state.y = 0.0;
 	this->goal_state.theta = 0.0;
 
-	this->get_all_positions();
+	this->get_tracker_position();
+
+	//	set initial goal to tracker position
+	this->set_goal_position(this->tracker_position);
 
 	this->tracking_thresholds.x = 0.01;
 	this->tracking_thresholds.y = 0.01;
@@ -90,8 +93,6 @@ track_model_errors_e track_model::get_tracker_position()
 
 //		ROS_INFO("[Tracker] [State] [tracker.x:%f] [tracker.y:%f] [tracker.theta:%f]", tracker_state.x, tracker_state.y, tracker_state.theta);
 
-//		ROS_INFO("Tracker Pos %f, %f", this->tracker_position.position.x,
-//				this->tracker_position.position.y);
 	}
 	else
 	{
@@ -123,28 +124,11 @@ track_model_errors_e track_model::get_position(std::string model_name, geometry_
 	return status;
 }
 
-track_model_errors_e track_model::get_all_positions()
-{
-	track_model_errors_e status = TRACK_MODEL_SUCCESS;
-
-	if(TRACK_MODEL_SUCCESS == status)
-	{
-		status = this->get_model_position();
-	}
-
-	if(TRACK_MODEL_SUCCESS == status)
-	{
-		status = this->get_tracker_position();
-	}
-
-	return status;
-}
-
-track_model_errors_e track_model::get_goal_position(){
+track_model_errors_e track_model::set_goal_position(geometry_msgs::Pose goal_position){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	this->goal = this->model_position;
+	this->goal = goal_position;
 
 	this->pose_to_state(&(this->goal), &(this->goal_state));
 
@@ -314,4 +298,13 @@ track_model_errors_e track_model::pose_to_state(geometry_msgs::Pose *pose, state
 	return status;
 }
 
+void track_model::set_goal_position_cb(const move_base_msgs::MoveBaseGoalConstPtr& msg){
 
+	// target ppose should be in /map reference frame
+	this->goal = msg->target_pose.pose;
+
+	this->pose_to_state(&(this->goal), &(this->goal_state));
+
+//	ROS_INFO("[Goal] [State] [x:%f] [y:%f] [theta:%f]", this->goal_state.x, this->goal_state.y, this->goal_state.theta);
+
+}

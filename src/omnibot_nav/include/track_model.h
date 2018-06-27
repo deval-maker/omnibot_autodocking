@@ -6,6 +6,7 @@
 #include <string.h>
 #include <geometry_msgs/Pose.h>
 #include <tf/tf.h>
+#include <move_base_msgs/MoveBaseGoal.h>
 
 enum track_model_errors_e
 {
@@ -66,11 +67,12 @@ public:
 	track_model_errors_e get_position(std::string model_name, geometry_msgs::Pose *model_pose);
 	track_model_errors_e get_model_position();
 	track_model_errors_e get_tracker_position();
-	track_model_errors_e get_goal_position();
+	track_model_errors_e set_goal_position(geometry_msgs::Pose goal_position);
 	track_model_errors_e compute_tracking_velocities();
 	track_model_errors_e filter_tracking_velocities();
 	track_model_errors_e send_tracker_velocities();
-	track_model_errors_e get_all_positions();
+	void set_goal_position_cb(const move_base_msgs::MoveBaseGoalConstPtr& msg);
+
 };
 
 #endif /* OMNIBOT_NAV_SRC_TRACKMODEL_H_ */
