@@ -27,15 +27,15 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 
 	this->tracking_thresholds.x = 0.01;
 	this->tracking_thresholds.y = 0.01;
-	this->tracking_thresholds.theta = (2*M_PI/180);
+	this->tracking_thresholds.theta = (1*M_PI/180); // 1 degree
 
 	this->velocity_upper_thresholds.linear.x = 1.5;
 	this->velocity_upper_thresholds.linear.y = 1.5;
 	this->velocity_upper_thresholds.angular.z = 1.5;
 
 	this->velocity_lower_thresholds.linear.x = 0.1;
-	this->velocity_lower_thresholds.linear.y = 0.1;
-	this->velocity_lower_thresholds.angular.z = 0.1;
+	this->velocity_lower_thresholds.linear.y = 0.01;
+	this->velocity_lower_thresholds.angular.z = 0.01;
 
 	ros::Duration(1).sleep();
 
@@ -87,6 +87,8 @@ track_model_errors_e track_model::get_tracker_position()
 	if(TRACK_MODEL_SUCCESS == status)
 	{
 		this->pose_to_state(&(this->tracker_position), &(this->tracker_state));
+
+//		ROS_INFO("[Tracker] [State] [tracker.x:%f] [tracker.y:%f] [tracker.theta:%f]", tracker_state.x, tracker_state.y, tracker_state.theta);
 
 //		ROS_INFO("Tracker Pos %f, %f", this->tracker_position.position.x,
 //				this->tracker_position.position.y);
@@ -146,7 +148,7 @@ track_model_errors_e track_model::get_goal_position(){
 
 	this->pose_to_state(&(this->goal), &(this->goal_state));
 
-	ROS_INFO("[Goal] [State] [x:%f] [y:%f] [theta:%f]", this->goal_state.x, this->goal_state.y, this->goal_state.theta);
+//	ROS_INFO("[Goal] [State] [x:%f] [y:%f] [theta:%f]", this->goal_state.x, this->goal_state.y, this->goal_state.theta);
 
 	return status;
 }
@@ -159,11 +161,11 @@ track_model_errors_e track_model::compute_tracking_velocities(){
 	//	compute_error and velocities
 	error.x = this->goal_state.x - this->tracker_state.x;
 	error.y = this->goal_state.y - this->tracker_state.y;
-	error.theta = this->goal_state.theta -this->tracker_state.theta;
+	error.theta = this->goal_state.theta - this->tracker_state.theta;
 
 	if((fabs(error.x) > this->tracking_thresholds.x))
 	{
-		this->vel_to_tracker.linear.x = error.x * 0.8;
+		this->vel_to_tracker.linear.x = (error.x * cos(error.theta) - error.y * sin(error.theta)) * 0.8;
 	}
 
 	else
@@ -173,12 +175,22 @@ track_model_errors_e track_model::compute_tracking_velocities(){
 
 	if((fabs(error.y) > this->tracking_thresholds.y))
 	{
-		this->vel_to_tracker.linear.y = error.y * 1.5;
+		this->vel_to_tracker.linear.y = (1 * error.x * sin(error.theta) + error.y * cos(error.theta)) * 1.5;
 	}
 
 	else
 	{
 		this->vel_to_tracker.linear.y = this->zero_velo.linear.y;
+	}
+
+	if((fabs(error.theta) > this->tracking_thresholds.theta))
+	{
+		this->vel_to_tracker.angular.z = error.theta * 2.0;
+	}
+
+	else
+	{
+		this->vel_to_tracker.angular.z = this->zero_velo.angular.z;
 	}
 
 	ROS_INFO("[Controller] [State] [Error.x:%f] [Error.y:%f] [Error.theta:%f]", error.x, error.y, error.theta);
@@ -245,6 +257,32 @@ track_model_errors_e track_model::filter_tracking_velocities(){
 		}
 	}
 
+	// Orientation
+	if(fabs(this->vel_to_tracker.angular.z) > this->velocity_upper_thresholds.angular.z)
+	{
+		if(this->vel_to_tracker.angular.z < 0)
+		{
+			this->vel_to_tracker.angular.z = -1 * this->velocity_upper_thresholds.angular.z;
+		}
+		else
+		{
+			this->vel_to_tracker.angular.z = this->velocity_upper_thresholds.angular.z;
+		}
+	}
+
+	if(fabs(this->vel_to_tracker.angular.z) < this->velocity_lower_thresholds.angular.z &&
+			this->vel_to_tracker.angular.z != 0.0)
+	{
+		if(this->vel_to_tracker.angular.z < 0)
+		{
+			this->vel_to_tracker.angular.z = -1 * this->velocity_lower_thresholds.angular.z;
+		}
+		else
+		{
+			this->vel_to_tracker.angular.z = this->velocity_lower_thresholds.angular.z;
+		}
+	}
+
 	return status;
 }
 
@@ -252,7 +290,7 @@ track_model_errors_e track_model::send_tracker_velocities(){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	ROS_INFO("[Tracker] [Twist] [lin_x:%f] [lin_y:%f] [ang_z:%f]", this->vel_to_tracker.linear.x, this->vel_to_tracker.linear.y,
+	ROS_INFO("[Tracker] [Twist] [lin.x:%f] [lin.y:%f] [ang.z:%f]", this->vel_to_tracker.linear.x, this->vel_to_tracker.linear.y,
 			this->vel_to_tracker.angular.z);
 
 	this->send_velo_pub.publish(this->vel_to_tracker);
@@ -264,13 +302,14 @@ track_model_errors_e track_model::pose_to_state(geometry_msgs::Pose *pose, state
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	state->x = pose->position.x;
-	state->y = pose->position.y;
-
 	tf::Pose pose_tf;
 	tf::poseMsgToTF( *pose, pose_tf);
 
 	state->theta = tf::getYaw(pose_tf.getRotation());
+
+	// Rotate the points according to R(goal_theta)
+	state->x = pose->position.x * cos(goal_state.theta) + pose->position.y * sin(goal_state.theta);
+	state->y = -1 * pose->position.x * sin(goal_state.theta) + pose->position.y * cos(goal_state.theta);
 
 	return status;
 }
