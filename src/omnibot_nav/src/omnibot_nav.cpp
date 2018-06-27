@@ -28,6 +28,8 @@ int main (int argc, char** argv)
 			status = nav.get_tracker_position();
 		}
 
+		ros::spinOnce();
+
 		// Plan
 		if(TRACK_MODEL_SUCCESS == status)
 		{

@@ -6,7 +6,6 @@
 #include <string.h>
 #include <geometry_msgs/Pose.h>
 #include <tf/tf.h>
-#include <move_base_msgs/MoveBaseGoal.h>
 
 enum track_model_errors_e
 {
@@ -71,7 +70,7 @@ public:
 	track_model_errors_e compute_tracking_velocities();
 	track_model_errors_e filter_tracking_velocities();
 	track_model_errors_e send_tracker_velocities();
-	void set_goal_position_cb(const move_base_msgs::MoveBaseGoalConstPtr& msg);
+	void set_goal_position_cb(const geometry_msgs::Pose::ConstPtr& msg);
 
 };
 

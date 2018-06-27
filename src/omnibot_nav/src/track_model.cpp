@@ -298,13 +298,13 @@ track_model_errors_e track_model::pose_to_state(geometry_msgs::Pose *pose, state
 	return status;
 }
 
-void track_model::set_goal_position_cb(const move_base_msgs::MoveBaseGoalConstPtr& msg){
+void track_model::set_goal_position_cb(const geometry_msgs::Pose::ConstPtr& msg){
 
 	// target ppose should be in /map reference frame
-	this->goal = msg->target_pose.pose;
+	this->goal = *msg;
 
 	this->pose_to_state(&(this->goal), &(this->goal_state));
 
-//	ROS_INFO("[Goal] [State] [x:%f] [y:%f] [theta:%f]", this->goal_state.x, this->goal_state.y, this->goal_state.theta);
+	ROS_INFO("[Goal] [State] [x:%f] [y:%f] [theta:%f]", this->goal_state.x, this->goal_state.y, this->goal_state.theta);
 
 }
