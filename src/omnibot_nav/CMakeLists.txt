@@ -10,6 +10,7 @@ project(omnibot_nav)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   gazebo_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions

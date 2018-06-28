@@ -274,8 +274,8 @@ track_model_errors_e track_model::send_tracker_velocities(){
 
 	track_model_errors_e status = TRACK_MODEL_SUCCESS;
 
-	ROS_INFO("[Tracker] [Twist] [lin.x:%f] [lin.y:%f] [ang.z:%f]", this->vel_to_tracker.linear.x, this->vel_to_tracker.linear.y,
-			this->vel_to_tracker.angular.z);
+//	ROS_INFO("[Tracker] [Twist] [lin.x:%f] [lin.y:%f] [ang.z:%f]", this->vel_to_tracker.linear.x, this->vel_to_tracker.linear.y,
+//			this->vel_to_tracker.angular.z);
 
 	this->send_velo_pub.publish(this->vel_to_tracker);
 
@@ -298,10 +298,10 @@ track_model_errors_e track_model::pose_to_state(geometry_msgs::Pose *pose, state
 	return status;
 }
 
-void track_model::set_goal_position_cb(const geometry_msgs::Pose::ConstPtr& msg){
+void track_model::set_goal_position_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
 
 	// target pose should be in /map reference frame
-	this->goal = *msg;
+	this->goal = msg->pose;
 
 	this->pose_to_state(&(this->goal), &(this->goal_state));
 

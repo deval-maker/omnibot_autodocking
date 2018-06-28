@@ -1,7 +1,12 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 #include <sensor_msgs/LaserScan.h>
+#include "geometry_msgs/Point.h"
+#include <tf/transform_listener.h>
+#include "tf/tf.h"
 
+#define NO_OF_SAMPLES			720
+#define LEG_RADIUS				0.1
 
 class goal_publisher
 {
@@ -16,7 +21,7 @@ class goal_publisher
 		ros::Publisher goal_pub;
 
 		sensor_msgs::LaserScan laser_data;
-		geometry_msgs::Pose goal_pose;
+		geometry_msgs::PoseStamped goal_pose;
 
 		geometry_msgs::Point leg_points[4];
 
