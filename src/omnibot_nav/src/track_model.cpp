@@ -300,7 +300,7 @@ track_model_errors_e track_model::pose_to_state(geometry_msgs::Pose *pose, state
 
 void track_model::set_goal_position_cb(const geometry_msgs::Pose::ConstPtr& msg){
 
-	// target ppose should be in /map reference frame
+	// target pose should be in /map reference frame
 	this->goal = *msg;
 
 	this->pose_to_state(&(this->goal), &(this->goal_state));

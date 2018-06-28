@@ -19,7 +19,6 @@ class goal_publisher
 		geometry_msgs::Pose goal_pose;
 
 		geometry_msgs::Point leg_points[4];
-		int8_t no_of_legs_detected;
 
 	public:
 
