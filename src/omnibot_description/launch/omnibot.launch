@@ -15,7 +15,7 @@
   
   <node pkg="tf" type="static_transform_publisher" name="odom_to_map" 
         args="0 0 0 0 0 0 1.0 map odom 100" />
-
+<!--
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find omnibot_description)/launch/omnibot_config.rviz"/>
-
+-->
 </launch>

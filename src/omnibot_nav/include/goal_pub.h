@@ -5,8 +5,8 @@
 #include <tf/transform_listener.h>
 #include "tf/tf.h"
 
-#define NO_OF_SAMPLES			720
-#define LEG_RADIUS				0.1
+#define NO_OF_SAMPLES_LASER			720
+#define LEG_RADIUS					0.1
 
 class goal_publisher
 {
@@ -24,6 +24,7 @@ class goal_publisher
 		geometry_msgs::PoseStamped goal_pose;
 
 		geometry_msgs::Point leg_points[4];
+		tf::TransformListener listener;
 
 	public:
 

@@ -18,14 +18,6 @@ struct state_var_s
 	double x;
 	double y;
 	double theta;
-
-};
-
-struct is_tracked_s
-{
-	bool x;
-	bool y;
-	bool theta;
 };
 
 class track_model {
@@ -62,6 +54,10 @@ public:
 	geometry_msgs::Twist velocity_lower_thresholds;
 
 	geometry_msgs::Pose goal;
+
+	float_t Kp_x;
+	float_t Kp_y;
+	float_t Kp_theta;
 
 	track_model_errors_e get_position(std::string model_name, geometry_msgs::Pose *model_pose);
 	track_model_errors_e get_model_position();
