@@ -1,10 +1,10 @@
-# Omni-directional Bot Autodocking Simulation
+# Omnidirectional Bot Autodocking Simulation
 
 ## Prerequisites
  
 * A linux machine 
-* ROS
-* Gazebo 
+* [Robot Operating System](http://www.ros.org)
+* [Gazebo](http://gazebosim.org)
 
 
 ## How to run the code ?
@@ -16,14 +16,26 @@ $ git clone https://github.com/deval-maker/omnibot_autodocking.git
 $ cd omnibot_autodocking/
 ```
 
-- Build and run the launch file.
+- Build and Configure.
 
 ```sh
 $ catkin_make
 $ source devel/setup.sh  # sh/bash/zsh, depending upon the shell env.
+```
+
+- (A) To run Gazebo and Rviz.
+
+```sh
 $ roslaunch omnibot_description omnibot.launch
 ```
+
+- (B) To run full Nav stack and Gazebo.
+
+```sh
+$ roslaunch omnibot_nav omnibot_nav.launch
+```
 - Unpause the simulation from gazebo. (Press Space key)
+
 
 ## Code Tested and working with 
 
