@@ -43,3 +43,4 @@ $ roslaunch omnibot_nav omnibot_nav.launch
 * ROS Kinetic
 * Gazebo 7.13.1 
  
+### [Demo video link](https://www.youtube.com/watch?v=WDER8uoheyc).
