@@ -33,7 +33,7 @@ track_model::track_model(std::string goal_model, std::string tracker_model, ros:
 	this->tracking_thresholds.theta = (1*M_PI/180); // 1 degree
 
 	this->velocity_upper_thresholds.linear.x = 1.5;
-	this->velocity_upper_thresholds.linear.y = 1.5;
+	this->velocity_upper_thresholds.linear.y = 5;
 	this->velocity_upper_thresholds.angular.z = 1.5;
 
 	this->velocity_lower_thresholds.linear.x = 0.1;
