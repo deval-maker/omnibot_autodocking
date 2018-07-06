@@ -10,13 +10,21 @@
 #define LENGTH_BIG_SIDE				2.8
 #define ERROR_THRESHOLD_COMPARE		0.15
 
+enum goal_pub_e
+{
+	GOAL_PUB_SUCCESS,
+	GOAL_PUB_ERROR_LEG_COUNT_NOT_ENOUGH,
+	GOAL_PUB_ERROR_TRANSFORM_EX,
+
+};
+
 class goal_publisher
 {
 	private:
 
 		void laser_data_cb(const sensor_msgs::LaserScanConstPtr& scan);
-		bool get_legs();
-		void compute_goal_pose();
+		goal_pub_e get_legs();
+		goal_pub_e compute_goal_pose();
 
 		ros::NodeHandle *node;
 		ros::Subscriber laser_sub;
@@ -33,8 +41,8 @@ class goal_publisher
 
 	public:
 
-		void get_goal();
-		void publish_goal();
+		goal_pub_e get_goal();
+		goal_pub_e publish_goal();
 		goal_publisher(ros::NodeHandle* nodeH);
 		~goal_publisher();
 };

@@ -13,13 +13,23 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Omnibot Goal Publisher node started.");
 
+	goal_pub_e status = GOAL_PUB_SUCCESS;
+
 	while (ros::ok())
 	{
+		status = GOAL_PUB_SUCCESS;
+
 		ros::spinOnce();
 
-		gp.get_goal();
+		if(GOAL_PUB_SUCCESS == status)
+		{
+			status = gp.get_goal();
+		}
 
-		gp.publish_goal();
+		if(GOAL_PUB_SUCCESS == status)
+		{
+			status = gp.publish_goal();
+		}
 
 		loop_rate.sleep();
 	}
@@ -41,17 +51,30 @@ goal_publisher::~goal_publisher()
 
 }
 
-void goal_publisher::get_goal()
+goal_pub_e goal_publisher::get_goal()
 {
-	if(true == this->get_legs())
+	goal_pub_e status = GOAL_PUB_SUCCESS;
+
+	if(GOAL_PUB_SUCCESS == status)
 	{
-		this->compute_goal_pose();
+		status = this->get_legs();
 	}
+
+	if(GOAL_PUB_SUCCESS == status)
+	{
+		status = this->compute_goal_pose();
+	}
+
+	return status;
 }
 
-void goal_publisher::publish_goal()
+goal_pub_e goal_publisher::publish_goal()
 {
+	goal_pub_e status = GOAL_PUB_SUCCESS;
+
 	goal_pub.publish(this->goal_pose);
+
+	return status;
 }
 
 void goal_publisher::laser_data_cb(const sensor_msgs::LaserScanConstPtr& scan)
@@ -59,9 +82,10 @@ void goal_publisher::laser_data_cb(const sensor_msgs::LaserScanConstPtr& scan)
 	this->laser_data = *scan;
 }
 
-bool goal_publisher::get_legs()
+goal_pub_e goal_publisher::get_legs(void)
 {
-	bool status = true;
+	goal_pub_e status = GOAL_PUB_SUCCESS;
+
 	int32_t i = 0;
 	float_t angle = 0.0;
 	int32_t previous_detection = 0;
@@ -112,65 +136,74 @@ bool goal_publisher::get_legs()
 	else if(no_of_leg_detected < 3)
 	{
 		ROS_ERROR("Only %d legs detected. ", no_of_leg_detected);
-		status = false;
+		status = GOAL_PUB_ERROR_LEG_COUNT_NOT_ENOUGH;
 	}
 
 	return status;
 }
 
-void goal_publisher::compute_goal_pose()
+goal_pub_e goal_publisher::compute_goal_pose(void)
 {
 	// Naming Convention: (ABCD -> leg(0,1,2,3))
+	goal_pub_e status = GOAL_PUB_SUCCESS;
 
-	// slope of line perpendicular to the bigger side
-	// get the 2 points of a bigger side
-	int i = 0;
-	float_t dist_of_side = 0.0;
-
-	for(i = 1; i < 4; i++)
+	if(GOAL_PUB_SUCCESS == status)
 	{
-		dist_of_side = sqrt(pow((leg_points[i].x - leg_points[0].x), 2) + pow((leg_points[i].y - leg_points[0].y), 2));
-		ROS_DEBUG("dist_of_side: %f (%d)", dist_of_side, i);
+		// slope of line perpendicular to the bigger side
+		// get the 2 points of a bigger side
+		int i = 0;
+		float_t dist_of_side = 0.0;
 
-		if(fabs(dist_of_side - LENGTH_BIG_SIDE) <= ERROR_THRESHOLD_COMPARE)
+		for(i = 1; i < 4; i++)
 		{
-			break;
+			dist_of_side = sqrt(pow((leg_points[i].x - leg_points[0].x), 2) + pow((leg_points[i].y - leg_points[0].y), 2));
+			ROS_DEBUG("dist_of_side: %f (%d)", dist_of_side, i);
+
+			if(fabs(dist_of_side - LENGTH_BIG_SIDE) <= ERROR_THRESHOLD_COMPARE)
+			{
+				break;
+			}
+		}
+
+		// get the angle
+		float_t angle = this->get_table_pose_angle(leg_points[0], leg_points[i]);
+
+		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(angle), this->goal_pose.pose.orientation);
+
+		// get center of the table (Invariant of the Order of the points)
+		this->goal_pose.pose.position.x = (this->leg_points[0].x + this->leg_points[1].x + this->leg_points[2].x + this->leg_points[3].x) / 4.0;
+		this->goal_pose.pose.position.y = (this->leg_points[0].y + this->leg_points[1].y + this->leg_points[2].y + this->leg_points[3].y) / 4.0;
+
+		ROS_DEBUG("Before TF X:%f, Y:%f, Theta %lf", this->goal_pose.pose.position.x, this->goal_pose.pose.position.y, angle * 180 / M_PI);
+
+		this->goal_pose.header.frame_id = "/base_link";
+		this->goal_pose.header.stamp = ros::Time(0);
+
+		// base_link to map tf
+		try
+		{
+			this->listener.waitForTransform("/map", "/base_link", ros::Time(0), ros::Duration(1.0));
+			this->listener.transformPose("/map", this->goal_pose, this->goal_pose);
+		}
+
+		catch (tf::TransformException &ex)
+		{
+			ROS_ERROR("%s",ex.what());
+			status = GOAL_PUB_ERROR_TRANSFORM_EX;
+			ros::Duration(1.0).sleep();
 		}
 	}
 
-	// get the angle
-	float_t angle = this->get_table_pose_angle(leg_points[0], leg_points[i]);
-
-	tf::quaternionTFToMsg(tf::createQuaternionFromYaw(angle), this->goal_pose.pose.orientation);
-
-	// get center of the table (Invariant of the Order of the points)
-	this->goal_pose.pose.position.x = (this->leg_points[0].x + this->leg_points[1].x + this->leg_points[2].x + this->leg_points[3].x) / 4.0;
-	this->goal_pose.pose.position.y = (this->leg_points[0].y + this->leg_points[1].y + this->leg_points[2].y + this->leg_points[3].y) / 4.0;
-
-	ROS_DEBUG("Before TF X:%f, Y:%f, Theta %lf", this->goal_pose.pose.position.x, this->goal_pose.pose.position.y, angle * 180 / M_PI);
-
-	this->goal_pose.header.frame_id = "/base_link";
-	this->goal_pose.header.stamp = ros::Time(0);
-
-	// base_link to map tf
-	try
+	if(GOAL_PUB_SUCCESS == status)
 	{
-		this->listener.waitForTransform("/map", "/base_link", ros::Time(0), ros::Duration(1.0));
-		this->listener.transformPose("/map", this->goal_pose, this->goal_pose);
+		tf::Pose pose_tf;
+		tf::poseMsgToTF(goal_pose.pose, pose_tf);
+
+		ROS_INFO("Goal X:%f Y:%f Theta: %f", this->goal_pose.pose.position.x, this->goal_pose.pose.position.y,
+				tf::getYaw(pose_tf.getRotation()) * 180 /M_PI);
 	}
 
-	catch (tf::TransformException &ex)
-	{
-		ROS_ERROR("%s",ex.what());
-		ros::Duration(1.0).sleep();
-	}
-
-	tf::Pose pose_tf;
-	tf::poseMsgToTF(goal_pose.pose, pose_tf);
-
-	ROS_INFO("Goal X:%f Y:%f Theta: %f", this->goal_pose.pose.position.x, this->goal_pose.pose.position.y,
-			tf::getYaw(pose_tf.getRotation()) * 180 /M_PI);
-
+	return status;
 }
 
 float_t goal_publisher::get_table_pose_angle(geometry_msgs::Point p1, geometry_msgs::Point p2)
